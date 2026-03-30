@@ -23,6 +23,9 @@ derby.log
 .env
 .env.*
 
+# Project docs
+docs/
+
 # OS / editor
 .DS_Store
 .idea/
