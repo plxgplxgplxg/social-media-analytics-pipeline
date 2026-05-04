@@ -1,0 +1,50 @@
+[
+  {
+    "id": "demo-rss-001",
+    "source": "rss",
+    "title": "Vietnam technology startups attract new investment",
+    "content": "Local technology startups report strong investor interest in data and AI products.",
+    "url": "https://example.com/vietnam-technology-startups",
+    "author": "Demo News",
+    "published_at": "2026-05-04T02:00:00Z",
+    "subreddit": null,
+    "feed_name": "Demo RSS",
+    "ingested_at": "2026-05-04T02:00:00Z"
+  },
+  {
+    "id": "demo-reddit-001",
+    "source": "reddit",
+    "title": "Spark streaming kafka checkpoint demo works well",
+    "content": "Students validate a Kappa architecture replay demo with Spark and Kafka.",
+    "url": "https://reddit.example.com/r/technology/demo",
+    "author": "demo_user",
+    "published_at": "2026-05-04T02:05:00Z",
+    "subreddit": "technology",
+    "feed_name": "technology",
+    "ingested_at": "2026-05-04T02:05:00Z"
+  },
+  {
+    "id": "demo-rss-002",
+    "source": "rss",
+    "title": "Market concerns grow after negative social media reaction",
+    "content": "Analysts see a negative reaction across several online communities.",
+    "url": "https://example.com/market-concerns-social-reaction",
+    "author": "Demo News",
+    "published_at": "2026-05-04T02:10:00Z",
+    "subreddit": null,
+    "feed_name": "Demo RSS",
+    "ingested_at": "2026-05-04T02:10:00Z"
+  },
+  {
+    "id": "demo-reddit-002",
+    "source": "reddit",
+    "title": "Kafka replay makes streaming analytics reproducible",
+    "content": "Historical events are replayed into the same raw_posts topic for Kappa processing.",
+    "url": "https://reddit.example.com/r/dataengineering/demo",
+    "author": "data_demo",
+    "published_at": "2026-05-04T02:15:00Z",
+    "subreddit": "dataengineering",
+    "feed_name": "dataengineering",
+    "ingested_at": "2026-05-04T02:15:00Z"
+  }
+]

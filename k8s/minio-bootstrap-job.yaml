@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bootstrap
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: minio/mc:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              /usr/bin/mc alias set local http://social-media-minio:9000 minioadmin minioadmin123
+              /usr/bin/mc mb -p local/raw-posts || true
+              /usr/bin/mc mb -p local/clean-posts || true
+              /usr/bin/mc mb -p local/aggregates || true
+              /usr/bin/mc mb -p local/checkpoints || true

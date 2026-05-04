@@ -1,0 +1,14 @@
+FROM bitnami/spark:3.5.1
+
+USER root
+
+COPY requirements.txt /tmp/requirements.txt
+RUN install_packages python3-pip && \
+    pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+WORKDIR /opt/social-media-analytics
+COPY . .
+
+USER 1001
+
+CMD ["/bin/bash", "-lc", "sleep infinity"]

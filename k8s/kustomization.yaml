@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: social-media-analytics
+resources:
+  - namespace.yaml
+  - platform-configmap.yaml
+  - zookeeper.yaml
+  - kafka-deployment.yaml
+  - kafka-ui.yaml
+  - minio.yaml
+  - minio-bootstrap-job.yaml
+  - mongodb.yaml
+  - elasticsearch.yaml
+  - kibana.yaml
+  - spark-deployment.yaml
+  - monitoring/elasticsearch-smoke-check-job.yaml

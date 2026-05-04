@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: social-media-analytics
+  labels:
+    app.kubernetes.io/name: social-media-analytics
+    app.kubernetes.io/part-of: social-media-analytics-pipeline
