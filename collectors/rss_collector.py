@@ -50,16 +50,37 @@ def build_event(entry: feedparser.FeedParserDict, feed_name: str) -> dict:
 
 def fetch_new_entries(seen_ids: set[str]) -> list[dict]:
     events = []
+    max_retries = 3
+
     for feed in RSS_FEEDS:
-        payload = fetch_payload(feed["url"])
-        parsed = feedparser.parse(payload)
-        for entry in parsed.entries:
-            dedup_key = getattr(entry, "id", None) or getattr(entry, "link", None)
-            if dedup_key and dedup_key in seen_ids:
-                continue
-            if dedup_key:
-                seen_ids.add(dedup_key)
-            events.append(build_event(entry, feed["name"]))
+        for attempt in range(max_retries):
+            try:
+                payload = fetch_payload(feed["url"])
+                parsed = feedparser.parse(payload)
+                
+                if getattr(parsed, "bozo", 0) and isinstance(parsed.bozo_exception, Exception):
+                    logging.warning("Failed to parse feed %s: %s", feed["name"], parsed.bozo_exception)
+                    break
+                    
+                added_count = 0
+                for entry in parsed.entries:
+                    dedup_key = getattr(entry, "id", None) or getattr(entry, "link", None)
+                    if dedup_key and dedup_key in seen_ids:
+                        continue
+                    if dedup_key:
+                        seen_ids.add(dedup_key)
+                    events.append(build_event(entry, feed["name"]))
+                    added_count += 1
+                
+                logging.info("Feed %s: Fetched %d new posts", feed["name"], added_count)
+                break
+            except Exception as e:
+                logging.warning("Error fetching feed %s (attempt %d/%d): %s", feed["name"], attempt + 1, max_retries, e)
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                else:
+                    logging.error("Failed to fetch feed %s after %d retries", feed["name"], max_retries)
+                    
     return events
 
 

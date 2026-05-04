@@ -1,6 +1,7 @@
 # Python
 .venv/
 venv/
+venv311/
 __pycache__/
 *.py[cod]
 *.pyo
@@ -18,13 +19,19 @@ derby.log
 
 # Logs
 *.log
+spark_log*.txt
 
 # Local env files
 .env
 .env.*
 
-# Project docs
-docs/
+# Ignore all markdown files in root except README.md
+/*.md
+!/README.md
+
+# Ignore temporary artifacts/scripts
+test_udf.py
+mock_spark.py
 
 # OS / editor
 .DS_Store
