@@ -1,5 +1,7 @@
 import os
 
+from config.env import PROJECT_ROOT  # noqa: F401
+
 
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")

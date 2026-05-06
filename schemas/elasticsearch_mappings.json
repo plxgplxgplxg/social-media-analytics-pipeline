@@ -1,0 +1,31 @@
+{
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "source": { "type": "keyword" },
+      "title": { 
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "content": { "type": "text" },
+      "url": { "type": "keyword" },
+      "author": { "type": "keyword" },
+      "published_at": { 
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "subreddit": { "type": "keyword" },
+      "feed_name": { "type": "keyword" },
+      "ingested_at": { 
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "sentiment": { "type": "keyword" }
+    }
+  }
+}

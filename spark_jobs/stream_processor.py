@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -9,6 +10,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from elasticsearch import Elasticsearch
 from pymongo import MongoClient
+from pymongo import UpdateOne
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import (
     coalesce,
@@ -69,6 +71,34 @@ CHECKPOINT_BASE = os.getenv(
 ENABLE_MINIO_SINK = os.getenv("ENABLE_MINIO_SINK", "true").lower() == "true"
 ENABLE_MONGO_SINK = os.getenv("ENABLE_MONGO_SINK", "true").lower() == "true"
 ENABLE_ES_SINK = os.getenv("ENABLE_ES_SINK", "true").lower() == "true"
+RESET_CHECKPOINT_ON_START = (
+    os.getenv("RESET_CHECKPOINT_ON_START", "false").lower() == "true"
+)
+
+
+def parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    normalized = value.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def normalize_mongo_records(
+    records: list[dict], datetime_fields: tuple[str, ...]
+) -> list[dict]:
+    normalized_records: list[dict] = []
+    for record in records:
+        normalized = record.copy()
+        for field_name in datetime_fields:
+            normalized[field_name] = parse_iso_datetime(normalized.get(field_name))
+        normalized_records.append(normalized)
+    return normalized_records
 
 
 def create_spark_session() -> SparkSession:
@@ -89,6 +119,22 @@ def create_spark_session() -> SparkSession:
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
         .getOrCreate()
     )
+
+
+def reset_checkpoint_if_requested(spark: SparkSession) -> None:
+    if not RESET_CHECKPOINT_ON_START:
+        return
+
+    jvm = spark._jvm
+    hadoop_conf = spark._jsc.hadoopConfiguration()
+    checkpoint_path = jvm.org.apache.hadoop.fs.Path(CHECKPOINT_BASE)
+    filesystem = checkpoint_path.getFileSystem(hadoop_conf)
+
+    if filesystem.exists(checkpoint_path):
+        filesystem.delete(checkpoint_path, True)
+        print(f"Deleted checkpoint state at {CHECKPOINT_BASE}")
+    else:
+        print(f"No checkpoint state found at {CHECKPOINT_BASE}")
 
 
 def build_clean_stream(spark: SparkSession) -> DataFrame:
@@ -211,6 +257,9 @@ def write_posts_to_mongo(batch_df: DataFrame, batch_id: int) -> None:
     records = [json.loads(row) for row in batch_df.toJSON().collect()]
     if not records:
         return
+    records = normalize_mongo_records(
+        records, ("published_at", "ingested_at", "event_time")
+    )
     client = MongoClient(MONGO_URI)
     try:
         client[MONGO_DATABASE][POSTS_COLLECTION].insert_many(records, ordered=False)
@@ -222,6 +271,7 @@ def write_sentiment_to_mongo(batch_df: DataFrame, batch_id: int) -> None:
     records = [json.loads(row) for row in batch_df.toJSON().collect()]
     if not records:
         return
+    records = normalize_mongo_records(records, ("window_start", "window_end"))
     client = MongoClient(MONGO_URI)
     try:
         client[MONGO_DATABASE][SENTIMENT_COLLECTION].insert_many(
@@ -235,11 +285,25 @@ def write_trending_to_mongo(batch_df: DataFrame, batch_id: int) -> None:
     records = [json.loads(row) for row in batch_df.toJSON().collect()]
     if not records:
         return
+    records = normalize_mongo_records(records, ("window_start", "window_end"))
     client = MongoClient(MONGO_URI)
     try:
-        client[MONGO_DATABASE][TRENDING_COLLECTION].insert_many(
-            records, ordered=False
-        )
+        operations = [
+            UpdateOne(
+                {
+                    "window_start": record["window_start"],
+                    "window_end": record["window_end"],
+                    "keyword": record["keyword"],
+                },
+                {"$set": record},
+                upsert=True,
+            )
+            for record in records
+        ]
+        if operations:
+            client[MONGO_DATABASE][TRENDING_COLLECTION].bulk_write(
+                operations, ordered=False
+            )
     finally:
         client.close()
 
@@ -259,6 +323,7 @@ def write_posts_to_es(batch_df: DataFrame, batch_id: int) -> None:
 def main() -> None:
     spark = create_spark_session()
     spark.sparkContext.setLogLevel("WARN")
+    reset_checkpoint_if_requested(spark)
 
     enriched_df = build_clean_stream(spark)
     trending_df = build_trending_keywords_df(enriched_df)

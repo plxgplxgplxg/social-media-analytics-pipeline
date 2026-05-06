@@ -2,6 +2,11 @@
 
 Project này triển khai pipeline Kappa để thu thập dữ liệu Reddit + RSS, đưa vào Kafka, xử lý bằng Spark Structured Streaming, rồi ghi ra MinIO, MongoDB, Elasticsearch.
 
+Trong kiến trúc hiện tại:
+- `MinIO` là lớp lưu trữ dài hạn cho parquet/checkpoint
+- `MongoDB` là lớp hot storage cho document/query nhanh, có TTL để không giữ vô hạn
+- `Elasticsearch` là lớp search/visualization cho bài viết đã xử lý
+
 ## Cấu trúc chính
 
 - `collectors/reddit_collector.py`: lấy dữ liệu Reddit qua API `praw`
@@ -88,6 +93,13 @@ Job này:
 - ghi sang `processed_posts`, `aggregated_metrics`
 - lưu xuống MinIO, MongoDB, Elasticsearch
 
+Nếu demo/dev cần reset state cũ của Spark tự động để tránh lỗi offset Kafka lệch checkpoint, bật:
+
+```bash
+RESET_CHECKPOINT_ON_START=true .venv/bin/spark-submit \
+  spark_jobs/stream_processor.py
+```
+
 ## 7. Kiểm tra topics
 
 ```bash
@@ -118,5 +130,8 @@ docker exec -it sma-kafka kafka-console-consumer \
 - `RSS_FETCH_INTERVAL_SECONDS`: mặc định `60`
 - `KAFKA_BOOTSTRAP_SERVERS`: mặc định `localhost:9092`
 - `MINIO_ENDPOINT`: mặc định `http://localhost:9000`
-- `MONGO_URI`: mặc định `mongodb://localhost:27017`, nên override bằng `.env` nếu dùng MongoDB Atlas
+- `MONGO_URI`: mặc định `mongodb://localhost:27017`
+- `MONGO_DATABASE`: mặc định `analytics`
+- `MONGO_POSTS_TTL_DAYS`: số ngày giữ `posts` trong MongoDB, mặc định `7`
+- `MONGO_METRICS_TTL_DAYS`: số ngày giữ `sentiment_metrics` và `trending_topics`, mặc định `30`
 - `ELASTICSEARCH_HOST`: mặc định `http://localhost:9200`

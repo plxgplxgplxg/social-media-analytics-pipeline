@@ -1,5 +1,7 @@
 import os
 
+from config.env import PROJECT_ROOT  # noqa: F401
+
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 RAW_POSTS_TOPIC = os.getenv("KAFKA_RAW_TOPIC", "raw_posts")

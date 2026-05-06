@@ -7,3 +7,5 @@ pymongo==4.10.1
 elasticsearch==8.16.0
 textblob==0.18.0.post0
 pyspark==3.5.1
+pytest==8.3.3
+python-dotenv==1.0.1

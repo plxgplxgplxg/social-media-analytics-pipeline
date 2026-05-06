@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elasticsearch-kibana-smoke-check
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: curl
+          image: curlimages/curl:8.7.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              curl -fsS http://social-media-elasticsearch:9200 >/tmp/es.json
+              curl -fsS http://social-media-kibana:5601/api/status >/tmp/kibana.json
+              echo "Elasticsearch and Kibana are reachable."

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pipeline-runtime-config
+data:
+  KAFKA_BOOTSTRAP_SERVERS: social-media-kafka:9092
+  KAFKA_STARTING_OFFSETS: earliest
+  MINIO_ENDPOINT: http://social-media-minio:9000
+  MINIO_ACCESS_KEY: minioadmin
+  MINIO_SECRET_KEY: minioadmin123
+  MONGO_URI: mongodb://social-media-mongodb:27017
+  MONGO_DATABASE: analytics
+  ELASTICSEARCH_HOST: http://social-media-elasticsearch:9200
+  ENABLE_MINIO_SINK: "true"
+  ENABLE_MONGO_SINK: "true"
+  ENABLE_ES_SINK: "true"

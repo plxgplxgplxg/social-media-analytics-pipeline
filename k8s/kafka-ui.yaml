@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-media-kafka-ui
+spec:
+  type: ClusterIP
+  selector:
+    app: social-media-kafka-ui
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-media-kafka-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-media-kafka-ui
+  template:
+    metadata:
+      labels:
+        app: social-media-kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: provectuslabs/kafka-ui:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: KAFKA_CLUSTERS_0_NAME
+              value: local-k8s
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: social-media-kafka:9092
