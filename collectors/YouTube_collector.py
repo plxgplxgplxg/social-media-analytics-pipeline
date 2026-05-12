@@ -1,9 +1,3 @@
-"""
-YouTube Big Data Crawler
-Collects trending videos metadata, comments, and channel info
-Saves data to CSV files
-"""
- 
 import os
 import csv
 import time
@@ -13,15 +7,12 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from dotenv import load_dotenv
 load_dotenv()
-API_KEY = os.getenv("YOUTUBE_API_KEY")       # Replace with your YouTube Data API v3 key
-REGION_CODE = "VN"                  # Region for trending videos (US, VN, GB, etc.)
-MAX_TRENDING_VIDEOS = 50            # Max: 50 per request (YouTube API limit)
-MAX_COMMENTS_PER_VIDEO = 100        # Number of comments to collect per video
-OUTPUT_DIR = "youtube_data"         # Folder where CSV files will be saved
+API_KEY = os.getenv("YOUTUBE_API_KEY")       
+REGION_CODE = "VN"                  
+MAX_TRENDING_VIDEOS = 50          
+MAX_COMMENTS_PER_VIDEO = 100        
+OUTPUT_DIR = "youtube_data"        
 
-# ─────────────────────────────────────────────
-# LOGGING SETUP
-# ─────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -33,16 +24,10 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ─────────────────────────────────────────────
-# YOUTUBE CLIENT
-# ─────────────────────────────────────────────
 def get_youtube_client():
     return build("youtube", "v3", developerKey=API_KEY)
 
 
-# ─────────────────────────────────────────────
-# 1. FETCH TRENDING VIDEOS
-# ─────────────────────────────────────────────
 def fetch_trending_videos(youtube, region_code=REGION_CODE, max_results=MAX_TRENDING_VIDEOS):
     """Fetch trending videos for a given region."""
     log.info(f"Fetching top {max_results} trending videos for region: {region_code}")
@@ -85,15 +70,11 @@ def fetch_trending_videos(youtube, region_code=REGION_CODE, max_results=MAX_TREN
         return []
 
 
-# ─────────────────────────────────────────────
-# 2. FETCH CHANNEL INFO
-# ─────────────────────────────────────────────
 def fetch_channel_info(youtube, channel_ids):
     """Fetch channel details for a list of channel IDs."""
     log.info(f"Fetching info for {len(channel_ids)} channels...")
     channels = []
 
-    # YouTube API allows up to 50 IDs per request
     for i in range(0, len(channel_ids), 50):
         batch = channel_ids[i:i+50]
         try:
@@ -127,9 +108,6 @@ def fetch_channel_info(youtube, channel_ids):
     return channels
 
 
-# ─────────────────────────────────────────────
-# 3. FETCH COMMENTS
-# ─────────────────────────────────────────────
 def fetch_comments(youtube, video_id, max_results=MAX_COMMENTS_PER_VIDEO):
     """Fetch top-level comments for a video."""
     comments = []
@@ -177,9 +155,6 @@ def fetch_comments(youtube, video_id, max_results=MAX_COMMENTS_PER_VIDEO):
     return comments
 
 
-# ─────────────────────────────────────────────
-# 4. SAVE TO CSV
-# ─────────────────────────────────────────────
 def save_to_csv(data, filename, fieldnames):
     """Save a list of dicts to a CSV file."""
     if not data:
@@ -197,9 +172,6 @@ def save_to_csv(data, filename, fieldnames):
     log.info(f"Saved {len(data)} rows → {filepath}")
 
 
-# ─────────────────────────────────────────────
-# 5. MAIN CRAWLER PIPELINE
-# ─────────────────────────────────────────────
 def run_crawler():
     log.info("=" * 50)
     log.info("YouTube Big Data Crawler Started")
@@ -250,7 +222,7 @@ def run_crawler():
             fieldnames=list(all_comments[0].keys())
         )
 
-    # ── Summary ──
+    
     log.info("=" * 50)
     log.info("Crawl Complete! Summary:")
     log.info(f"  Videos collected   : {len(videos)}")
